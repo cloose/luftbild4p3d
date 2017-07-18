@@ -4,6 +4,8 @@ import io.reactivex.schedulers.Schedulers
 import org.junit.Test
 import org.luftbild4p3d.bing.LevelOfDetail.LOD16
 import org.luftbild4p3d.bing.Tile
+import org.luftbild4p3d.p3d.TiledImage
+import java.awt.image.BufferedImage
 import kotlin.test.assertEquals
 
 class ImageDownloaderTest {
@@ -20,8 +22,8 @@ class ImageDownloaderTest {
             true
         }
 
-        val leftTile = Tile(1, 5, LOD16)
-        ImageDownloader(768, downloadMapTile, Schedulers.single()).drawMapTilesToImage(leftTile, drawToImage)
+        val tiledImage = TiledImage(Tile(1, 5, LOD16), 3)
+        ImageDownloader(downloadMapTile, Schedulers.single()).downloadMapTilesForImage(tiledImage)
 
         assertEquals(listOf(Tile(1, 5, LOD16), Tile(2, 5, LOD16), Tile(3, 5, LOD16),
                 Tile(1, 6, LOD16), Tile(2, 6, LOD16), Tile(3, 6, LOD16),
@@ -29,25 +31,16 @@ class ImageDownloaderTest {
     }
 
     @Test
-    fun drawsEachDownloadedTileToImage() {
+    fun returnsDownloadedBufferedImage() {
+        val tiledImage = TiledImage(Tile(1, 5, LOD16), 2)
         val expected = listOf(byteArrayOf(1, 2, 3), byteArrayOf(4, 5, 6), byteArrayOf(7, 8, 9), byteArrayOf(10, 11, 12))
         val it = expected.listIterator()
         val downloadMapTile = { _: Tile -> it.next() }
 
-        var actualImageData = ArrayList<ByteArray>()
-        var actualX = ArrayList<Int>()
-        var actualY = ArrayList<Int>()
-        val drawToImage: (ByteArray, Int, Int) -> Boolean = { data, x, y ->
-            actualImageData.add(data)
-            actualX.add(x)
-            actualY.add(y)
-            true
-        }
+        val bufferedImage = ImageDownloader(downloadMapTile, Schedulers.single()).downloadMapTilesForImage(tiledImage)
 
-        ImageDownloader(512, downloadMapTile, Schedulers.single()).drawMapTilesToImage(Tile(1, 5, LOD16), drawToImage)
-
-        assertEquals(listOf(0, 256, 0, 256), actualX)
-        assertEquals(listOf(0, 0, 256, 256), actualY)
-        assertEquals(expected, actualImageData)
+        assertEquals(BufferedImage.TYPE_3BYTE_BGR, bufferedImage.type)
+        assertEquals(512, bufferedImage.width)
+        assertEquals(512, bufferedImage.height)
     }
 }

@@ -1,6 +1,7 @@
 package org.luftbild4p3d.p3d
 
 import org.luftbild4p3d.bing.LevelOfDetail
+import org.luftbild4p3d.bing.Tile
 import java.io.Closeable
 import java.io.File
 
@@ -12,7 +13,7 @@ class InfFile(val filePath: String, val numberOfSources: Int) : Closeable {
         writeMultiSourceHeader()
     }
 
-    fun writeSource(index: Int, sourceDirectory: String, sourceFile: String, tiledImage: TiledImage) {
+    fun writeSource(index: Int, waterMask: Int, sourceDirectory: String, sourceFile: String, tiledImage: TiledImage) {
         writer.appendln("[Source$index]")
         writer.appendln("Type = BMP")
         writer.appendln("Layer = Imagery")
@@ -25,7 +26,23 @@ class InfFile(val filePath: String, val numberOfSources: Int) : Closeable {
         writer.appendln("yDim = ${tiledImage.pixelSizeY()}")
         //writer.appendln("Variation = March,April,May,June,July,August,September,October,November")
         //writer.appendln("NullValue = ,,,,0")
-        //writer.appendln("Channel_LandWaterMask = ${waterMask}.0")
+        writer.appendln("Channel_LandWaterMask = ${waterMask}.0")
+        writer.appendln("")
+    }
+
+    fun writeWaterMask(index: Int, sourceDirectory: String, sourceFile: String, tiledImage: TiledImage) {
+        writer.appendln("[Source$index]")
+        writer.appendln("Type = TIFF")
+        writer.appendln("Layer = None")
+        writer.appendln("SourceDir = \"$sourceDirectory\"")
+        writer.appendln("SourceFile = \"$sourceFile\"")
+        writer.appendln("PixelIsPoint = 0")
+        writer.appendln("ulxMap = ${tiledImage.longitude}")
+        writer.appendln("ulyMap = ${tiledImage.latitude}")
+        writer.appendln("xDim = ${tiledImage.pixelSizeX()}")
+        writer.appendln("yDim = ${tiledImage.pixelSizeY()}")
+        writer.appendln("SamplingMethod = Gaussian")
+        //writer.appendln("NullValue = ,,,0,0")
         writer.appendln("")
     }
 

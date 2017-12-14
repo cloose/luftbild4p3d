@@ -1,71 +1,38 @@
 package org.luftbild4p3d.p3d
 
-import org.luftbild4p3d.bing.LevelOfDetail
 import org.luftbild4p3d.bing.Tile
-import java.io.Closeable
-import java.io.File
 
-class InfFile(val filePath: String, val numberOfSources: Int) : Closeable {
+data class InfFile(val filePath: String, val content: List<String>)
 
-    private val writer = File(filePath).printWriter()
+fun createInfFile(bglFile: BglFile, sceneryFolderPath: String): InfFile {
+    val header = createMultiSourceHeader(bglFile.tiledImages.size)
+    val imageSources = bglFile.tiledImages.mapIndexed(::createImageSource).flatten()
+    val destination = createDestination(bglFile.topLeftTile)
+    return InfFile("$sceneryFolderPath/OP_${bglFile.topLeftTile.x}_${bglFile.topLeftTile.y}.inf", header + imageSources + destination)
+}
 
-    init {
-        writeMultiSourceHeader()
-    }
+fun createMultiSourceHeader(sourceCount: Int): List<String> {
+    return listOf("[Source]",
+            "Type = MultiSource",
+            "NumberOfSources = $sourceCount",
+            "")
+}
 
-    fun writeSource(index: Int, waterMask: Int, sourceDirectory: String, sourceFile: String, tiledImage: TiledImage) {
-        writer.appendln("[Source$index]")
-        writer.appendln("Type = BMP")
-        writer.appendln("Layer = Imagery")
-        writer.appendln("SourceDir = \"$sourceDirectory\"")
-        writer.appendln("SourceFile = \"$sourceFile\"")
-        writer.appendln("PixelIsPoint = 0")
-        writer.appendln("ulxMap = ${tiledImage.longitude}")
-        writer.appendln("ulyMap = ${tiledImage.latitude}")
-        writer.appendln("xDim = ${tiledImage.pixelSizeX()}")
-        writer.appendln("yDim = ${tiledImage.pixelSizeY()}")
-        //writer.appendln("Variation = March,April,May,June,July,August,September,October,November")
-        //writer.appendln("NullValue = ,,,,0")
-        writer.appendln("Channel_LandWaterMask = ${waterMask}.0")
-        writer.appendln("")
-    }
+fun createImageSource(index: Int, tiledImage: TiledImage): List<String> {
+    val coordinates = tiledImage.topLeftTile.toPixelCoordinates().toWgs84Coordinates()
+    return listOf("[Source${index+1}]",
+            "Type = BMP",
+            "Layer = Imagery",
+            "SourceFile = ${tiledImage.fileName}",
+            "PixelIsPoint = 0",
+            "ulxMap = ${coordinates.longitude}",
+            "ulyMap = ${coordinates.latitude}",
+            "")
+}
 
-    fun writeWaterMask(index: Int, sourceDirectory: String, sourceFile: String, tiledImage: TiledImage) {
-        writer.appendln("[Source$index]")
-        writer.appendln("Type = TIFF")
-        writer.appendln("Layer = None")
-        writer.appendln("SourceDir = \"$sourceDirectory\"")
-        writer.appendln("SourceFile = \"$sourceFile\"")
-        writer.appendln("PixelIsPoint = 0")
-        writer.appendln("ulxMap = ${tiledImage.longitude}")
-        writer.appendln("ulyMap = ${tiledImage.latitude}")
-        writer.appendln("xDim = ${tiledImage.pixelSizeX()}")
-        writer.appendln("yDim = ${tiledImage.pixelSizeY()}")
-        writer.appendln("SamplingMethod = Gaussian")
-        //writer.appendln("NullValue = ,,,0,0")
-        writer.appendln("")
-    }
-
-    fun writeDestination(destinationDirectory: String, destinationFile: String, levelOfDetail: LevelOfDetail) {
-        writer.appendln("[Destination]")
-        writer.appendln("DestFileType = BGL")
-        writer.appendln("DestDir = \"$destinationDirectory\"")
-        writer.appendln("DestBaseFileName = \"$destinationFile\"")
-        writer.appendln("LOD = Auto,${levelOfDetail.prepar3dLOD}")
-        writer.appendln("CompressionQuality = 95")
-        writer.appendln("UseSourceDimensions = 1")
-        writer.appendln("")
-
-    }
-
-    override fun close() {
-        writer.close()
-    }
-
-    private fun writeMultiSourceHeader() {
-        writer.appendln("[Source]")
-        writer.appendln("Type = MultiSource")
-        writer.appendln("NumberOfSources = $numberOfSources")
-        writer.appendln()
-    }
+fun createDestination(topLeftTile: Tile): List<String> {
+    return listOf("[Destination]",
+            "DestFileType = BGL",
+            "DestBaseFileName = OP_${topLeftTile.x}_${topLeftTile.y}",
+            "")
 }

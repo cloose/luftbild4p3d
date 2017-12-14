@@ -1,71 +1,64 @@
 package org.luftbild4p3d.bing
 
-import org.junit.Test
-import kotlin.test.assertEquals
+import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.specs.StringSpec
 
-class Wgs84CoordinatesTest {
+class Wgs84CoordinatesTest : StringSpec({
 
-    @Test
-    fun convertsAngleInDegreesToRadians() {
-        assertEquals(0.0, 0.0.toRadians())
-        assertEquals(Math.PI / 2, 90.0.toRadians())
-        assertEquals(Math.PI, 180.0.toRadians())
-        assertEquals(Math.PI * 3 / 2, 270.0.toRadians())
-        assertEquals(Math.PI * 2, 360.0.toRadians())
+    "toRadians converts angle in degrees to radians" {
+        0.0.toRadians() shouldEqual 0.0
+        90.0.toRadians() shouldEqual Math.PI / 2
+        180.0.toRadians() shouldEqual Math.PI
+        270.0.toRadians() shouldEqual Math.PI * 3 / 2
+        360.0.toRadians() shouldEqual Math.PI * 2
     }
 
-    @Test
-    fun convertsCoordinatesAtMeridianAndEquatorToPixelCoordinatesForLOD14() {
+    "toPixelCoordinates converts coordinates at meridian and equator to pixel coordinates of LOD14" {
         val actual = Wgs84Coordinates(0.0, 0.0).toPixelCoordinates(LevelOfDetail.LOD14)
 
-        assertEquals(2097152, actual.x)
-        assertEquals(2097152, actual.y)
-        assertEquals(LevelOfDetail.LOD14, actual.levelOfDetail)
+        actual.x shouldEqual 2097152
+        actual.y shouldEqual 2097152
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD14
     }
 
-    @Test
-    fun convertsNorthWestBoundToPixelCoordinatesForLOD14() {
+    "toPixelCoordinates converts coordinates at north west border to pixel coordinates of LOD14" {
         val actual = Wgs84Coordinates(85.05112878, -180.0).toPixelCoordinates(LevelOfDetail.LOD14)
 
-        assertEquals(0, actual.x)
-        assertEquals(0, actual.y)
-        assertEquals(LevelOfDetail.LOD14, actual.levelOfDetail)
+        actual.x shouldEqual 0
+        actual.y shouldEqual 0
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD14
     }
 
-    @Test
-    fun convertsSouthEastBoundToPixelCoordinatesForLOD14() {
+    "toPixelCoordinates converts coordinates at south east border to pixel coordinates of LOD14" {
         val actual = Wgs84Coordinates(-85.05112878, 180.0).toPixelCoordinates(LevelOfDetail.LOD14)
 
-        assertEquals(4194304, actual.x)
-        assertEquals(4194304, actual.y)
-        assertEquals(LevelOfDetail.LOD14, actual.levelOfDetail)
+        actual.x shouldEqual 4194304
+        actual.y shouldEqual 4194304
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD14
     }
 
-    @Test
-    fun convertsCoordinatesAtMeridianAndEquatorToPixelCoordinatesForLOD18() {
+    "toPixelCoordinates converts coordinates at meridian and equator to pixel coordinates of LOD18" {
         val actual = Wgs84Coordinates(0.0, 0.0).toPixelCoordinates(LevelOfDetail.LOD18)
 
-        assertEquals(33554432, actual.x)
-        assertEquals(33554432, actual.y)
-        assertEquals(LevelOfDetail.LOD18, actual.levelOfDetail)
+        actual.x shouldEqual 33554432
+        actual.y shouldEqual 33554432
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD18
     }
 
-    @Test
-    fun convertsNorthWestBoundToPixelCoordinatesForLOD18() {
+    "toPixelCoordinates converts coordinates at north west border to pixel coordinates of LOD18" {
         val actual = Wgs84Coordinates(85.05112878, -180.0).toPixelCoordinates(LevelOfDetail.LOD18)
 
-        assertEquals(0, actual.x)
-        assertEquals(0, actual.y)
-        assertEquals(LevelOfDetail.LOD18, actual.levelOfDetail)
+        actual.x shouldEqual 0
+        actual.y shouldEqual 0
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD18
     }
 
-    @Test
-    fun convertsSouthEastBoundToPixelCoordinatesForLOD18() {
+    "toPixelCoordinates converts coordinates at south east border to pixel coordinates of LOD18" {
         val actual = Wgs84Coordinates(-85.05112878, 180.0).toPixelCoordinates(LevelOfDetail.LOD18)
 
-        assertEquals(67108864, actual.x)
-        assertEquals(67108864, actual.y)
-        assertEquals(LevelOfDetail.LOD18, actual.levelOfDetail)
+        actual.x shouldEqual 67108864
+        actual.y shouldEqual 67108864
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD18
     }
 
-}
+})

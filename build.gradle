@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.1.4"
+    id "org.jetbrains.kotlin.jvm" version "1.2.0"
 }
 
 group 'org.luftbild4p3d'
@@ -18,13 +18,16 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:1.1.4"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:1.2.0"
     compile 'com.github.kittinunf.fuel:fuel:1.7.0'
     compile 'com.github.kittinunf.fuel:fuel-rxjava:1.7.0'
     compile 'com.twelvemonkeys.imageio:imageio-tiff:3.3.2'
     compile 'com.google.code.gson:gson:2.8.1'
-    compile 'no.tornado:tornadofx:1.7.5'
+    compile 'no.tornado:tornadofx:1.7.13'
+    compile 'io.reactivex.rxjava2:rxkotlin:2.1.0'
 
-    testCompile 'org.jetbrains.kotlin:kotlin-test-junit:1.1.4'
+    testCompile "io.kotlintest:kotlintest:2.0.7"
+    testCompile "com.nhaarman:mockito-kotlin:1.5.0"
+    //testCompile 'org.jetbrains.kotlin:kotlin-test-junit:1.1.51'
     testCompile 'junit:junit:4.12'
 }

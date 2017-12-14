@@ -1,59 +1,53 @@
 package org.luftbild4p3d.bing
 
-import org.junit.Test
-import kotlin.test.assertEquals
+import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.specs.StringSpec
 
-class PixelCoordinatesTest {
+class PixelCoordinatesTest : StringSpec({
 
-    @Test
-    fun convertsCoordinatesAtMeridianAndEquatorToTileForLOD14() {
+    "toTile converts coordinates at meridian and equator to tile of LOD14" {
         val actual = PixelCoordinates(2097152, 2097152, LevelOfDetail.LOD14).toTile()
 
-        assertEquals(8192, actual.x)
-        assertEquals(8192, actual.y)
-        assertEquals(LevelOfDetail.LOD14, actual.levelOfDetail)
+        actual.x shouldEqual 8192
+        actual.y shouldEqual 8192
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD14
     }
 
-    @Test
-    fun convertsNorthWestBoundToPixelCoordinatesForLOD14() {
+    "toTile converts coordinates at north west border to tile of LOD14" {
         val actual = PixelCoordinates(0, 0, LevelOfDetail.LOD14).toTile()
 
-        assertEquals(0, actual.x)
-        assertEquals(0, actual.y)
-        assertEquals(LevelOfDetail.LOD14, actual.levelOfDetail)
+        actual.x shouldEqual 0
+        actual.y shouldEqual 0
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD14
     }
 
-    @Test
-    fun convertsSouthEastBoundToPixelCoordinatesForLOD14() {
+    "toTile converts coordinates at south east border to tile of LOD14" {
         val actual = PixelCoordinates(4194303, 4194303, LevelOfDetail.LOD14).toTile()
 
-        assertEquals(16383, actual.x)
-        assertEquals(16383, actual.y)
-        assertEquals(LevelOfDetail.LOD14, actual.levelOfDetail)
+        actual.x shouldEqual 16383
+        actual.y shouldEqual 16383
+        actual.levelOfDetail shouldEqual LevelOfDetail.LOD14
     }
 
-    @Test
-    fun convertsCoordinatesAtMeridianAndEquatorToWgs84CoordinatesForLOD14() {
+    "toWgs84Coordinates converts coordinates at meridian and equator to WGS84 coordinates of LOD14" {
         val actual = PixelCoordinates(2097152, 2097152, LevelOfDetail.LOD14).toWgs84Coordinates()
 
-        assertEquals(0.0, actual.latitude)
-        assertEquals(0.0, actual.longitude)
+        actual.latitude shouldEqual 0.0
+        actual.longitude shouldEqual 0.0
     }
 
-    @Test
-    fun convertsNorthWestBoundToWgs84CoordinatesForLOD14() {
+    "toWgs84Coordinates converts coordinates at north west border to WGS84 coordinates of LOD14" {
         val actual = PixelCoordinates(0, 0, LevelOfDetail.LOD14).toWgs84Coordinates()
 
-        assertEquals(85.05112877980659, actual.latitude)
-        assertEquals(-180.0, actual.longitude)
+        actual.latitude shouldEqual 85.05112877980659
+        actual.longitude shouldEqual -180.0
     }
 
-    @Test
-    fun convertsSouthEastBoundToWgs84CoordinatesForLOD14() {
+    "toWgs84Coordinates converts coordinates at south east border to WGS84 coordinates of LOD14" {
         val actual = PixelCoordinates(4194304, 4194304, LevelOfDetail.LOD14).toWgs84Coordinates()
 
-        assertEquals(-85.05112137546755, actual.latitude)
-        assertEquals(179.99991416931152, actual.longitude)
+        actual.latitude shouldEqual -85.05112137546755
+        actual.longitude shouldEqual 179.99991416931152
     }
 
-}
+})

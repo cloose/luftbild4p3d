@@ -2,50 +2,69 @@ package org.luftbild4p3d.bing
 
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.result.Result
-import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import io.kotlintest.matchers.*
+import io.kotlintest.specs.StringSpec
+import java.net.URL
 
-class ImageryRestApiTest {
+class ImageryRestApiTest : StringSpec({
 
-    @Test
-    fun passesBingApiKeyWithRestCall() {
+    "getImageryMetadata calls Bing Imagery Metadata REST API" {
         var actualUrl = ""
-        val httpGetCall = { url: String ->
+        val httpGet = { url: String ->
             actualUrl = url
             Result.Success<ImageryMetadata, FuelError>(ImageryMetadata("", "", "", arrayOf()))
         }
 
-        ImageryRestApi(httpGetCall).getMetadata()
+        getImageryMetadata("bingApiKey", httpGet)
 
-        assertTrue { actualUrl.contains(ImageryRestApi.BING_API_KEY) }
+        actualUrl should startWith("http://dev.virtualearth.net/REST/v1/Imagery/Metadata/Aerial?o=json&key=")
     }
 
-    @Test
-    fun returnsReceivedMetadataOnSuccess() {
+    "getImageryMetadata passes Bing API key with REST call" {
+        var actualUrl = ""
+        val httpGet = { url: String ->
+            actualUrl = url
+            Result.Success<ImageryMetadata, FuelError>(ImageryMetadata("", "", "", arrayOf()))
+        }
+
+        getImageryMetadata("bingApiKey", httpGet)
+
+        actualUrl should include("bingApiKey")
+    }
+
+    "getImageryMetadata returns received metadata on success" {
         val expected = ImageryMetadata("", "", "", arrayOf())
 
         val httpGetCall = { _: String ->
             Result.Success<ImageryMetadata, FuelError>(expected)
         }
 
-        val actual = ImageryRestApi(httpGetCall).getMetadata()
+        val actual = getImageryMetadata("bingApiKey", httpGetCall)
 
-        assertEquals(expected, actual)
+        actual shouldBe expected
     }
 
-    @Test
-    fun throwsExceptionIfRestCallFails() {
+    "getImageryMetadata throws exception if REST call failed" {
         val httpGetCall = { _: String ->
             val error = FuelError()
             error.exception = RuntimeException()
             Result.Failure<ImageryMetadata, FuelError>(error)
         }
 
-        assertFailsWith(RuntimeException::class) {
-            ImageryRestApi(httpGetCall).getMetadata()
+        val exception = shouldThrow<RuntimeException> {
+            getImageryMetadata("bingApiKey", httpGetCall)
         }
+
+        exception.message ?: "" should startWith("Failed to get metadata from Bing Imagery REST API")
     }
 
-}
+    "toMapTileImageUrl returns function that returns the image url for a Bing map tile" {
+        val tile = Tile(1, 1, LevelOfDetail.LOD16)
+        val imageUrlTemplate = "http://ecn.{subdomain}.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=5907"
+        val metadata = ImageryMetadata(resourceSets = arrayOf(ResourceSet(resources = arrayOf(Resource(imageUrl = imageUrlTemplate, imageUrlSubdomains = arrayOf("s1"))))))
+
+        val tileToImageUrl = toMapTileImageUrl(metadata)
+
+        tileToImageUrl(tile) shouldEqual URL("http://ecn.s1.tiles.virtualearth.net/tiles/a0000000000000003.jpeg?g=5907")
+    }
+})

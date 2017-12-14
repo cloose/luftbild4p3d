@@ -1,5 +1,9 @@
 package org.luftbild4p3d.bing
 
+import java.awt.image.BufferedImage
+import java.net.URL
+import javax.imageio.ImageIO
+
 data class Tile(val x: Int, val y: Int, val levelOfDetail: LevelOfDetail) {
 
     companion object {
@@ -30,4 +34,12 @@ data class Tile(val x: Int, val y: Int, val levelOfDetail: LevelOfDetail) {
         return quadKey.toString()
     }
 
+}
+
+fun generateTiles(startTile: Tile, numberOfColumns: Int, numberOfRows: Int, offset: Int) : List<Tile> {
+    return (0 until numberOfRows).flatMap { y -> (0 until numberOfColumns).map { x -> Tile(startTile.x + offset * x, startTile.y + offset * y, startTile.levelOfDetail) } }
+}
+
+fun downloadTile(toMapTileImageUrl : (Tile) -> URL) : (Tile) -> BufferedImage {
+    return { tile -> ImageIO.read(toMapTileImageUrl(tile)) }
 }

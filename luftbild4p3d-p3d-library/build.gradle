@@ -1,0 +1,11 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    compile 'org.jetbrains.kotlin:kotlin-stdlib-jre8:1.2.10'
+
+    // for access to Bing Maps Tile System - https://msdn.microsoft.com/en-us/library/bb259689.aspx
+    compile project(':luftbild4p3d-bing-library')
+
+    // for tests - https://github.com/kotlintest/kotlintest
+    testCompile 'io.kotlintest:kotlintest:2.0.7'
+}

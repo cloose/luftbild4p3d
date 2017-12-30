@@ -1,0 +1,8 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    compile 'org.jetbrains.kotlin:kotlin-stdlib-jre8:1.2.10'
+
+    // for tests - https://github.com/kotlintest/kotlintest
+    testCompile 'io.kotlintest:kotlintest:2.0.7'
+}

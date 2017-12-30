@@ -25,9 +25,9 @@ class BingMapTileSystemTest : StringSpec({
 
     "getMapTileImageDownloader returns a function that downloads map tile images for tile coordinates" {
         val imageFile = createTestImage("test.bmp", Color.RED, Color.GREEN, Color.BLUE)
-        val metadata = ImageryMetadata(256, 256, imageFile.toURI().toURL().toString(), listOf("s1"), "")
+        val toMapTileUrl = { _: TileCoordinates -> imageFile.toURI().toURL() }
 
-        val downloadMapTileImage = getMapTileImageDownloader(metadata)
+        val downloadMapTileImage = getMapTileImageDownloader(toMapTileUrl)
         val actualImage = downloadMapTileImage(TileCoordinates(1, 1, LevelOfDetail.LOD14))
 
         actualImage.getRGB(0, 0) shouldEqual Color.RED.rgb

@@ -15,6 +15,6 @@ fun getMapTileUrlGenerator(metadata: ImageryMetadata): (TileCoordinates) -> URL 
     }
 }
 
-fun getMapTileImageDownloader(metadata: ImageryMetadata): (TileCoordinates) -> BufferedImage {
-    return getMapTileUrlGenerator(metadata) andThen { url: URL -> ImageIO.read(url) }
+fun getMapTileImageDownloader(toMapTileUrl: (TileCoordinates) -> URL): (TileCoordinates) -> BufferedImage {
+    return toMapTileUrl andThen ImageIO::read
 }

@@ -9,6 +9,9 @@ dependencies {
     // for JSON parsing with GSON - https://github.com/google/gson
     compile 'com.github.kittinunf.fuel:fuel-gson:1.12.0'
 
+    // for access to function composition
+    compile project(':luftbild4p3d-base-library')
+
     // for tests - https://github.com/kotlintest/kotlintest
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 }

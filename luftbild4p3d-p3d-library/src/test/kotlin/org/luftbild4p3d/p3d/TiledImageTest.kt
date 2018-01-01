@@ -1,32 +1,76 @@
 package org.luftbild4p3d.p3d
 
-import io.kotlintest.matchers.beTheSameInstanceAs
-import io.kotlintest.matchers.haveSize
-import io.kotlintest.matchers.should
-import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.matchers.*
 import io.kotlintest.specs.StringSpec
-import org.luftbild4p3d.bing.types.LevelOfDetail
+import org.luftbild4p3d.bing.types.LevelOfDetail.LOD16
 import org.luftbild4p3d.bing.types.TileCoordinates
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import javax.imageio.ImageIO
 
 class TiledImageTest : StringSpec({
 
-    val aTestImage = createTestImage(Color.WHITE)
+    val aTiledImage = TiledImage("path", TileCoordinates(1, 2, LOD16))
 
-    "getTiledImagePathGenerator returns a function that generates a path from an image path name and tile coordinates" {
-        val tileCoordinates = TileCoordinates(1, 2, LevelOfDetail.LOD16)
+    "fileName is derived from the tile coordinates" {
+        val tiledImage = TiledImage("path", TileCoordinates(1, 2, LOD16))
 
-        val generateTiledImagePath = getTiledImagePathGenerator("path")
-        val tiledImagePath = generateTiledImagePath(tileCoordinates)
-
-        tiledImagePath shouldEqual "path/BI16_1_2.bmp"
+        tiledImage.fileName shouldEqual "BI16_1_2.bmp"
     }
 
-    "combineMapTileImages draws a list of images onto a single image" {
+    "getTiledImageCreator returns a function that creates a TiledImage from an image path and tile coordinates" {
+        val expectedTileCoordinates = TileCoordinates(1, 2, LOD16)
+        val expectedImagePath = "path"
+
+        val createTiledImage = getTiledImageCreator(expectedImagePath)
+        val tiledImage = createTiledImage(expectedTileCoordinates)
+
+        tiledImage.imagePath shouldEqual expectedImagePath
+        tiledImage.tileCoordinates shouldEqual expectedTileCoordinates
+    }
+
+    "generateTileCoordinatesList generates a 16x16 matrix of TileCoordinates from a TiledImage" {
+        val expectedTiledImage = TiledImage("path", TileCoordinates(1, 2, LOD16))
+
+        val (list, tiledImage) = generateTileCoordinatesList(expectedTiledImage)
+
+        list should haveSize(16 * 16)
+        tiledImage should beTheSameInstanceAs(expectedTiledImage)
+    }
+
+    "getTiledImageDownloader returns a function that downloads the map tile image for each TileCoordinates" {
+        val tileCoordinatesList = listOf(
+                TileCoordinates(1, 2, LOD16),
+                TileCoordinates(2, 2, LOD16),
+                TileCoordinates(1, 3, LOD16),
+                TileCoordinates(2, 3, LOD16)
+        )
+        val expectedMapTileImages = listOf(
+                createTestImage(Color.RED),
+                createTestImage(Color.GREEN),
+                createTestImage(Color.BLUE),
+                createTestImage(Color.WHITE)
+        )
+        var i = 0
+        val downloadMapTileImage = { _: TileCoordinates ->
+            expectedMapTileImages[i++]
+        }
+
+        val downloadTiledImage = getTiledImageDownloader(downloadMapTileImage)
+        val (imageList, tiledImage) = downloadTiledImage(Pair(tileCoordinatesList, aTiledImage))
+
+        imageList should containsAll(expectedMapTileImages)
+        tiledImage should beTheSameInstanceAs(aTiledImage)
+    }
+
+    "getMapTileImageCombiner returns a function that draws a list of images onto a single image" {
         val downloadedImages = listOf(createTestImage(Color.RED), createTestImage(Color.GREEN), createTestImage(Color.BLUE), createTestImage(Color.YELLOW), createTestImage(Color.WHITE))
 
-        val actualImage = combineMapTileImages(downloadedImages)
+        val combineMapTileImages = getMapTileImageCombiner()
+        val (actualImage, tiledImage) = combineMapTileImages(Pair(downloadedImages, aTiledImage))
 
         actualImage.width shouldEqual 4096
         actualImage.height shouldEqual 4096
@@ -35,50 +79,25 @@ class TiledImageTest : StringSpec({
         actualImage.getRGB(512, 0) shouldEqual Color.BLUE.rgb
         actualImage.getRGB(768, 0) shouldEqual Color.YELLOW.rgb
         actualImage.getRGB(1024, 0) shouldEqual Color.WHITE.rgb
+        tiledImage should beTheSameInstanceAs(aTiledImage)
     }
 
-    "getTiledImageDownloader returns a function that generates a 16x16 list of tile coordinates and downloads the corresponding map tile image" {
-        var actualTileCoordinates = mutableListOf<TileCoordinates>()
-        val downloadMapTileImage = { tile: TileCoordinates ->
-            actualTileCoordinates.add(tile)
-            aTestImage
-        }
+    "getTiledImageWriter returns a function that writes the downloaded and combined image to disk" {
+        val tiledImage = TiledImage(".", TileCoordinates(1, 2, LOD16))
+        val expectedImage = createTestImage(Color.RED, Color.GREEN, Color.BLUE)
+        Files.deleteIfExists(Paths.get(tiledImage.fileName))
 
-        val downloadTiledImage = getTiledImageDownloader(downloadMapTileImage)
-        downloadTiledImage(TileCoordinates(1, 2, LevelOfDetail.LOD16))
+        val writeTiledImage = getTiledImageWriter(".")
+        val actualTiledImage = writeTiledImage(Pair(expectedImage, tiledImage))
 
-        actualTileCoordinates should haveSize(16 * 16)
+        val actualImage = ImageIO.read(File(tiledImage.fileName))
+        actualImage.width shouldEqual expectedImage.width
+        actualImage.height shouldEqual expectedImage.height
+        actualImage.getRGB(0, 0) shouldEqual Color.RED.rgb
+        actualImage.getRGB(1, 0) shouldEqual Color.GREEN.rgb
+        actualImage.getRGB(2, 0) shouldEqual Color.BLUE.rgb
+        actualTiledImage should beTheSameInstanceAs(tiledImage)
     }
-
-    "getTiledImageDownloader returns a function that combines all downloaded map tile images into a single image" {
-        val expectedColors = createColorList(16 * 16)
-        val images = expectedColors.map { createTestImage(it) }.listIterator()
-        val downloadMapTileImage = { _: TileCoordinates -> images.next() }
-
-        val downloadTiledImage = getTiledImageDownloader(downloadMapTileImage)
-        val actualImage = downloadTiledImage(TileCoordinates(1, 2, LevelOfDetail.LOD16))
-
-        actualImage.width shouldEqual 4096
-        actualImage.height shouldEqual 4096
-        var i = 0
-        for (y in 0..4095 step 256) {
-            for (x in 0..4095 step 256) {
-                actualImage.getRGB(x, y) shouldEqual expectedColors[i++].rgb
-            }
-        }
-    }
-
-    "getTiledImageGenerator returns a function that generates a path and downloads an image for tile coordinates and returns them as tiled image" {
-        val generatePath = { _: TileCoordinates -> "path/BI16_1_2.bmp"}
-        val downloadImage = { _: TileCoordinates -> aTestImage }
-
-        val generateTiledImage = getTiledImageGenerator(generatePath, downloadImage)
-        val tiledImage = generateTiledImage(TileCoordinates(1, 2, LevelOfDetail.LOD16))
-
-        tiledImage.imagePath shouldEqual "path/BI16_1_2.bmp"
-        tiledImage.image should beTheSameInstanceAs(aTestImage)
-    }
-
 })
 
 fun createTestImage(vararg pixels: Color): BufferedImage {
@@ -86,8 +105,4 @@ fun createTestImage(vararg pixels: Color): BufferedImage {
     pixels.forEachIndexed { index, color -> image.setRGB(index, 0, color.rgb) }
 
     return image
-}
-
-fun createColorList(count: Int): List<Color> {
-    return (0 until count).map { Color(it, 255, 255) }
 }

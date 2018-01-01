@@ -3,6 +3,9 @@ apply plugin: 'kotlin'
 dependencies {
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jre8:1.2.10'
 
+    // for access to reactive extensions - https://github.com/ReactiveX/RxKotlin
+    compile 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+
     // for access to Bing Maps Tile System - https://msdn.microsoft.com/en-us/library/bb259689.aspx
     compile project(':luftbild4p3d-bing-library')
 

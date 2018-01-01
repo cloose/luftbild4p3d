@@ -1,15 +1,11 @@
 package org.luftbild4p3d.p3d
 
+import io.kotlintest.forAll
 import io.kotlintest.matchers.*
+import io.kotlintest.properties.forAll
 import io.kotlintest.specs.StringSpec
 import org.luftbild4p3d.bing.types.LevelOfDetail.LOD16
 import org.luftbild4p3d.bing.types.TileCoordinates
-import java.awt.Color
-import java.awt.image.BufferedImage
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
-import javax.imageio.ImageIO
 
 class BglFileTest : StringSpec({
 
@@ -46,5 +42,26 @@ class BglFileTest : StringSpec({
         list[6] shouldEqual TileCoordinates(1, 34, LOD16)
         list[7] shouldEqual TileCoordinates(17, 34, LOD16)
         list[8] shouldEqual TileCoordinates(33, 34, LOD16)
+    }
+
+    "getTiledImagesForBglFileDownloader returns a function that downloads all tiled images for a BGL file" {
+        val expectedBglFile = BglFile("path", TileCoordinates(1, 2, LOD16))
+        val expectedTileCoordinatesList = listOf(
+                TileCoordinates(1, 2, LOD16),
+                TileCoordinates(2, 2, LOD16),
+                TileCoordinates(1, 3, LOD16),
+                TileCoordinates(2, 3, LOD16)
+        )
+        val generateTiledImage = { tileCoordinates: TileCoordinates -> TiledImage("path", tileCoordinates) }
+
+        val downloadTiledImages = getTiledImagesForBglFileDownloader(generateTiledImage)
+        val (imageList, bglFile) = downloadTiledImages(Pair(expectedTileCoordinatesList, expectedBglFile))
+
+        var i = 0
+        forAll(imageList) { tiledImage ->
+            tiledImage.imagePath shouldEqual "path"
+            tiledImage.tileCoordinates shouldEqual expectedTileCoordinatesList[i++]
+        }
+        bglFile should beTheSameInstanceAs(expectedBglFile)
     }
 })

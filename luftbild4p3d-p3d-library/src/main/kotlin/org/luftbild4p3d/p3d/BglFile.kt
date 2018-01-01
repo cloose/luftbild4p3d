@@ -17,3 +17,8 @@ fun generateTileCoordinatesList(bglFile: BglFile): Pair<List<TileCoordinates>, B
     val generateTileCoordinatesList = getTileCoordinatesGenerator(3, 3, 16)
     return Pair(generateTileCoordinatesList(bglFile.tileCoordinates), bglFile)
 }
+
+
+fun getTiledImagesForBglFileDownloader(tiledImageGenerator: (TileCoordinates) -> TiledImage) : (Pair<List<TileCoordinates>, BglFile>) -> Pair<List<TiledImage>, BglFile> {
+    return { (tileCoordinateList, bglFile) -> Pair(tileCoordinateList.map(tiledImageGenerator), bglFile) }
+}

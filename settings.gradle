@@ -1,2 +1,8 @@
-rootProject.name = 'org.luftbild4p3d.app'
+rootProject.name = 'org.luftbild4p3d'
+
+include 'luftbild4p3d-base-library'
+include 'luftbild4p3d-bing-library'
+include 'luftbild4p3d-osm-library'
+include 'luftbild4p3d-p3d-library'
+include 'luftbild4p3d-application'
 
